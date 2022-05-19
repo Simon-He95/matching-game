@@ -4,5 +4,6 @@ export type Block = {
   pos: number,
   animateX: number,
   animateY: number,
+  animate: boolean | undefined
   src: string,
 }
