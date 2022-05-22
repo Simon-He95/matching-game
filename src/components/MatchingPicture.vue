@@ -158,7 +158,7 @@ function newGame() {
 </script>
 
 <template>
-  <div m-t-5 flex="~ gap-5" justify-center>
+  <div m-y-5 flex="~ gap-5" justify-center>
     <button btn @click="reset">Rest</button>
     <button btn @click="newGame">New Game</button>
   </div>

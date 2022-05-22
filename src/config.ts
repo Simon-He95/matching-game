@@ -7,5 +7,5 @@ export const ratio = ref<number>(0)
 export const n = ref<number>(4)
 export const loading = ref<boolean>(true)
 export const emptyFlag = "./empty.png";
-export const height = computed(() => ratio.value * 5);
+export const height = computed(() => 1 / ratio.value * 5);
 
