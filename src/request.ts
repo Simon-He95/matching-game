@@ -22,6 +22,7 @@ export function getImage() {
 const imageLength = 29
 export function baseImage() {
   return new Promise((resolve) => {
+    loading.value = true
     const picId = picIndex()
     const src = `${localUrl}${picId}.jpg`
     currentImage.value = picId

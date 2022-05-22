@@ -1,3 +1,4 @@
+import { emptyFlag, arrayPic } from './config';
 
 const pictureMap = new Map<string, any>()
 
@@ -27,11 +28,21 @@ async function generateImage(image: any, n: number) {
   const h = image.height / n;
   let count = 0
 
-  for (let j = 0; j < n; j++) {
+  for (let j = 0; j <= 2 * n + 1; j++) {
     const col = [];
-    const twoCol: any[] = []
-    for (let i = 0; i < n; i++) {
-      ctx.drawImage(image, i * w, j * h, w, h, 0, 0, w, h);
+    for (let i = 0; i <= n + 1; i++) {
+      if (i === 0 || i === n + 1 || j === 0 || j === 2 * n + 1) {
+        col.push({
+          url: emptyFlag,
+          x: i,
+          y: j
+        })
+        continue
+      }
+      if (j > n)
+        ctx.drawImage(image, (i - 1) * w, (j - n - 1) * h, w, h, 0, 0, w, h);
+      else
+        ctx.drawImage(image, (i - 1) * w, (j - 1) * h, w, h, 0, 0, w, h);
       const url = await PicSpace(canvas.toDataURL("image/png"))
       const block = {
         url,
@@ -39,19 +50,11 @@ async function generateImage(image: any, n: number) {
         y: j,
         pos: ++count
       };
-      const twoBlock = {
-        url,
-        x: i,
-        y: j,
-        pos: ++count
-      }
+
       numbers.push(JSON.parse(JSON.stringify(block)))
-      numbers.push(JSON.parse(JSON.stringify(twoBlock)))
       col.push(block);
-      twoCol.push(twoBlock);
     }
     result.push(col);
-    result.push(twoCol);
   }
   return { result, numbers }
 }
@@ -96,7 +99,6 @@ async function PicSpace(src: string) {
 }
 
 function randomPic(numbers: any[]) {
-
   const result = numbers.splice(Math.floor(Math.random() * numbers.length), 1)[0];
   return result
 }
@@ -105,18 +107,41 @@ export async function initData(n: number, src: string) {
   const copyNumbers = JSON.parse(JSON.stringify(numbers))
   const copyArrayPic = JSON.parse(JSON.stringify(arrayPic))
 
-  for (let i = 0; i < arrayPic.length; i++) {
-    for (let j = 0; j < arrayPic[i].length; j++) {
+  for (let i = 1; i < arrayPic.length - 1; i++) {
+    for (let j = 1; j < arrayPic[i].length - 1; j++) {
       const { url, pos, } = randomPic(copyNumbers)
-      console.log(pos)
       copyArrayPic[i][j].url = url
       copyArrayPic[i][j].pos = pos
-      copyArrayPic[i][j].animateX = false
-      copyArrayPic[i][j].animateY = false
     }
   }
   return copyArrayPic
 }
+
+export function reset() {
+  const numbers: any[] = []
+  const copyArrayPic = JSON.parse(JSON.stringify(arrayPic.value))
+  arrayPic.value.forEach(row => {
+    row.forEach(block => {
+      if (block.url !== emptyFlag) {
+        numbers.push(block)
+      }
+    })
+  })
+  debugger
+  copyArrayPic.forEach(row => {
+    row.forEach(block => {
+      if (block.url !== emptyFlag) {
+        const { url, pos } = randomPic(numbers)
+        block.url = url
+        block.pos = pos
+      }
+    })
+  })
+
+  console.log(copyArrayPic)
+  arrayPic.value = copyArrayPic
+}
+
 
 
 

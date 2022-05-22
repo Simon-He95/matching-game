@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { arrayPic, emptyFlag, ratio } from "../config";
+import { arrayPic, emptyFlag, ratio, loading, height, n } from "../config";
+import { reset } from "../pic";
 import { Block } from "../type";
+import { baseImage } from "../request";
 const pre = ref<Block>({});
 function match(block: Block) {
   if (block.url === emptyFlag) return;
-  if (pre.value.pos === block.pos) {
+  if (pre.value === block) {
     pre.value.animate = false;
     pre.value = {};
     return;
@@ -29,19 +31,7 @@ function match(block: Block) {
 }
 
 function canEliminate(block: Block) {
-  if (
-    block.x === pre.value.x &&
-    (block.x === 0 || block.x === arrayPic.value[0].length - 1)
-  ) {
-    return pre.value.url === block.url;
-  } else if (
-    block.y === pre.value.y &&
-    (block.y === 0 || block.y === arrayPic.value.length - 1)
-  ) {
-    return pre.value.url === block.url;
-  } else {
-    return bfs(block, pre.value) || bfs(pre.value, block);
-  }
+  return bfs(block, pre.value) || bfs(pre.value, block);
 }
 
 function bfs(block, target, path = new Set()) {
@@ -53,63 +43,91 @@ function bfs(block, target, path = new Set()) {
       continue;
     }
     path.add(cur);
-    if (cur.pos === target.pos) {
-      console.log("find", cur);
-      return true;
-    }
     const y = cur.y;
     const x = cur.x;
     // 处理边界
     if (y > 0) {
       const top = copyArray[y - 1][x];
       top.type = "down";
-      top.pre = cur;
-      if (top.pos === target.pos) {
-        console.log("find", top);
-        return true;
-      }
-      if (top.url === emptyFlag) {
-        queue.push(top);
+      top.pre = JSON.parse(JSON.stringify(cur));
+      if (preReturn(top)) {
+        if (top.pos === target.pos) {
+          console.log("find", top);
+          return true;
+        }
+        if (top.url === emptyFlag) {
+          queue.push(top);
+        }
       }
     }
     if (y < copyArray.length - 1) {
       const bottom = copyArray[y + 1][x];
       bottom.type = "up";
-      bottom.pre = cur;
-      if (bottom.pos === target.pos) {
-        console.log("find", bottom);
-        return true;
-      }
-      if (bottom.url === emptyFlag) {
-        queue.push(bottom);
+      bottom.pre = JSON.parse(JSON.stringify(cur));
+      if (preReturn(bottom)) {
+        if (bottom.pos === target.pos) {
+          console.log("find", bottom);
+          return true;
+        }
+        if (bottom.url === emptyFlag) {
+          queue.push(bottom);
+        }
       }
     }
     if (x > 0) {
       const left = copyArray[y][x - 1];
       left.type = "right";
-      left.pre = cur;
-      if (left.pos === target.pos) {
-        console.log("find", left);
-        return true;
-      }
-      if (left.url === emptyFlag) {
-        queue.push(left);
+      left.pre = JSON.parse(JSON.stringify(cur));
+      if (preReturn(left)) {
+        if (left.pos === target.pos) {
+          console.log("find", left);
+          return true;
+        }
+        if (left.url === emptyFlag) {
+          queue.push(left);
+        }
       }
     }
     if (x < copyArray[0].length - 1) {
       const right = copyArray[y][x + 1];
       right.type = "left";
-      right.pre = cur;
-      if (right.pos === target.pos) {
-        console.log("find", right);
-        return true;
-      }
-      if (right.url === emptyFlag) {
-        queue.push(right);
+      right.pre = JSON.parse(JSON.stringify(cur));
+      if (preReturn(right)) {
+        if (right.pos === target.pos) {
+          console.log("find", right);
+          return true;
+        }
+        if (right.url === emptyFlag) {
+          queue.push(right);
+        }
       }
     }
   }
   return false;
+}
+
+function preReturn(block) {
+  let count = 0;
+  let pre = null,
+    current = null;
+  const queue = [block];
+  while (queue.length) {
+    const block = queue.shift();
+    current = block.type;
+    if (pre === null) {
+      pre = current;
+    } else {
+      if (pre !== current) {
+        count++;
+        pre = current;
+      }
+    }
+    if (block.pre) {
+      queue.push(block.pre);
+    }
+    if (count > 3) return false;
+  }
+  return true;
 }
 
 function isWin() {
@@ -127,12 +145,23 @@ const sizeStyle = (block) => {
   }
   result["width"] = "5rem !important";
   result["height"] = "auto !important";
+  if (block.url === emptyFlag) {
+    result["visibility"] = "hidden";
+  }
   result["aspect-ratio"] = ratio.value;
   return result;
 };
+
+function newGame() {
+  baseImage();
+}
 </script>
 
 <template>
+  <div m-t-5 flex="~ gap-5" justify-center>
+    <button btn @click="reset">Rest</button>
+    <button btn @click="newGame">New Game</button>
+  </div>
   <div
     v-for="(row, y) in arrayPic"
     :key="y"
@@ -141,28 +170,31 @@ const sizeStyle = (block) => {
     justify-center
     w-max
     ma
+    m-l--20
+    :style="{
+      'margin-bottom': !loading && y === 2 * n + 1 && -height + 'rem',
+      'margin-top': !loading && y === 0 && -height + 'rem',
+    }"
   >
-    <div v-for="block in row" relative m="1px">
-      <img
-        object-fill
-        w-auto
-        flex="~"
-        items-center
-        justify-center
-        border-box
-        :title="block.pos"
-        border="0.5 gray-400/10"
-        :class="[
-          'bg-gray-500/10',
-          'hover:bg-gray-500/20',
-          block?.animateY ? 'animate-shake-y' : '',
-          block?.animateX ? 'animate-shake-x' : '',
-        ]"
-        :src="block?.url"
-        @click="match(block)"
-        :style="sizeStyle(block)"
-      />
-    </div>
+    <img
+      v-for="block in row"
+      m-1
+      object-fill
+      w-auto
+      flex="~"
+      items-center
+      justify-center
+      :title="block.pos"
+      :class="[
+        'bg-gray-500/10',
+        'hover:bg-gray-500/20',
+        block?.animateY ? 'animate-shake-y' : '',
+        block?.animateX ? 'animate-shake-x' : '',
+      ]"
+      :src="block?.url"
+      @click="match(block)"
+      :style="sizeStyle(block)"
+    />
   </div>
 </template>
 
