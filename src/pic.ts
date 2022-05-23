@@ -1,4 +1,5 @@
 import { emptyFlag, arrayPic } from './config';
+import type { Block } from './type';
 
 const pictureMap = new Map<string, any>()
 
@@ -27,7 +28,7 @@ async function generateImage(image: any, n: number) {
   const w = image.width / n;
   const h = image.height / n;
   let count = 0
-
+  const cacheUrl = new Map<string, string>()
   for (let j = 0; j <= 2 * n + 1; j++) {
     const col = [];
     for (let i = 0; i <= n + 1; i++) {
@@ -39,11 +40,21 @@ async function generateImage(image: any, n: number) {
         })
         continue
       }
+      let pos = ''
+
       if (j > n)
-        ctx.drawImage(image, (i - 1) * w, (j - n - 1) * h, w, h, 0, 0, w, h);
+        pos = JSON.stringify([i - 1, j - n - 1])
       else
+        pos = JSON.stringify([i - 1, j - 1])
+
+      let url: string = ''
+      if (cacheUrl.has(pos)) {
+        url = cacheUrl.get(pos)!
+      } else {
         ctx.drawImage(image, (i - 1) * w, (j - 1) * h, w, h, 0, 0, w, h);
-      const url = await PicSpace(canvas.toDataURL("image/png"))
+        url = await PicSpace(canvas.toDataURL("image/png")) as string
+        cacheUrl.set(pos, url)
+      }
       const block = {
         url,
         x: i,
@@ -119,7 +130,9 @@ export async function initData(n: number, src: string) {
 
 export function reset() {
   const numbers: any[] = []
-  const copyArrayPic = JSON.parse(JSON.stringify(arrayPic.value))
+  const copyArrayPic: Array<Block[]> = JSON.parse(JSON.stringify(arrayPic.value))
+
+  console.log(arrayPic.value)
   arrayPic.value.forEach(row => {
     row.forEach(block => {
       if (block.url !== emptyFlag) {
@@ -127,7 +140,6 @@ export function reset() {
       }
     })
   })
-  debugger
   copyArrayPic.forEach(row => {
     row.forEach(block => {
       if (block.url !== emptyFlag) {
@@ -137,7 +149,6 @@ export function reset() {
       }
     })
   })
-
   console.log(copyArrayPic)
   arrayPic.value = copyArrayPic
 }

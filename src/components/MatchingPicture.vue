@@ -19,15 +19,25 @@ function match(block: Block) {
   }
 
   if (canEliminate(block)) {
-    block.url = emptyFlag;
-    pre.value.url = emptyFlag;
+    block.disappear = true;
+    pre.value.disappear = true;
+    const _pre = pre.value;
+    setTimeout(() => {
+      block.url = emptyFlag;
+      _pre.url = emptyFlag;
+      block.disappear = false;
+      _pre.disappear = false;
+      if (isWin()) {
+        setTimeout(() => {
+          alert("You Win!");
+          baseImage();
+        });
+      }
+    }, 200);
   }
   block.animate = false;
   pre.value.animate = false;
   pre.value = {};
-  if (isWin()) {
-    alert("You Win!");
-  }
 }
 
 function canEliminate(block: Block) {
@@ -39,17 +49,13 @@ function bfs(block, target, path = new Set()) {
   const queue = [block];
   while (queue.length) {
     const cur = queue.shift();
-    if (path.has(cur)) {
-      continue;
-    }
-    path.add(cur);
     const y = cur.y;
     const x = cur.x;
     // 处理边界
     if (y > 0) {
       const top = copyArray[y - 1][x];
-      top.type = "down";
-      top.pre = JSON.parse(JSON.stringify(cur));
+      const types: string[] = JSON.parse(JSON.stringify(cur.types || []));
+      top.types = types ? ["down", ...types] : ["down"];
       if (preReturn(top)) {
         if (top.pos === target.pos) {
           console.log("find", top);
@@ -62,8 +68,8 @@ function bfs(block, target, path = new Set()) {
     }
     if (y < copyArray.length - 1) {
       const bottom = copyArray[y + 1][x];
-      bottom.type = "up";
-      bottom.pre = JSON.parse(JSON.stringify(cur));
+      const types: string[] = JSON.parse(JSON.stringify(cur.types || []));
+      bottom.types = types ? ["up", ...types] : ["up"];
       if (preReturn(bottom)) {
         if (bottom.pos === target.pos) {
           console.log("find", bottom);
@@ -76,8 +82,8 @@ function bfs(block, target, path = new Set()) {
     }
     if (x > 0) {
       const left = copyArray[y][x - 1];
-      left.type = "right";
-      left.pre = JSON.parse(JSON.stringify(cur));
+      const types: string[] = JSON.parse(JSON.stringify(cur.types || []));
+      left.types = types ? ["right", ...types] : ["right"];
       if (preReturn(left)) {
         if (left.pos === target.pos) {
           console.log("find", left);
@@ -90,8 +96,9 @@ function bfs(block, target, path = new Set()) {
     }
     if (x < copyArray[0].length - 1) {
       const right = copyArray[y][x + 1];
-      right.type = "left";
-      right.pre = JSON.parse(JSON.stringify(cur));
+      const types: string[] = JSON.parse(JSON.stringify(cur.types || []));
+      right.types = types ? ["left", ...types] : ["left"];
+
       if (preReturn(right)) {
         if (right.pos === target.pos) {
           console.log("find", right);
@@ -109,23 +116,20 @@ function bfs(block, target, path = new Set()) {
 function preReturn(block) {
   let count = 0;
   let pre = null,
-    current = null;
-  const queue = [block];
-  while (queue.length) {
-    const block = queue.shift();
-    current = block.type;
-    if (pre === null) {
-      pre = current;
-    } else {
-      if (pre !== current) {
-        count++;
-        pre = current;
-      }
+    cur = null;
+  if (block.types.length < 4) {
+    return true;
+  }
+
+  for (let i = 1; i < block.types.length; i++) {
+    cur = block.types[i];
+    pre = block.types[i - 1];
+    if (pre !== cur) {
+      count++;
     }
-    if (block.pre) {
-      queue.push(block.pre);
+    if (count > 2) {
+      return false;
     }
-    if (count > 3) return false;
   }
   return true;
 }
@@ -152,15 +156,28 @@ const sizeStyle = (block) => {
   return result;
 };
 
-function newGame() {
-  baseImage();
+function newGame(type: "Easy" | "Normal" | "Hard") {
+  if (type === "Easy" && n.value !== 2) {
+    n.value = 2;
+    baseImage();
+  } else if (type === "Normal" && n.value !== 3) {
+    n.value = 3;
+    baseImage();
+  } else if (type === "Hard" && n.value !== 4) {
+    n.value = 4;
+    baseImage();
+  }
 }
+newGame("Easy");
 </script>
 
 <template>
-  <div m-y-5 flex="~ gap-5" justify-center>
+  <div m-y-5 flex="~ gap-1" justify-center>
     <button btn @click="reset">Rest</button>
-    <button btn @click="newGame">New Game</button>
+    <button btn @click="baseImage">New Game</button>
+    <button btn @click="newGame('Easy')">Easy</button>
+    <button btn @click="newGame('Normal')">Normal</button>
+    <button btn @click="newGame('Hard')">Hard</button>
   </div>
   <div
     v-for="(row, y) in arrayPic"
@@ -168,11 +185,9 @@ function newGame() {
     flex="~"
     items-center
     justify-center
-    w-max
     ma
-    m-l--20
     :style="{
-      'margin-bottom': !loading && y === 2 * n + 1 && -height + 'rem',
+      'margin-bottom': !loading && y === 2 * n + 1 ? -height + 'rem' : '',
       'margin-top': !loading && y === 0 && -height + 'rem',
     }"
   >
@@ -188,8 +203,7 @@ function newGame() {
       :class="[
         'bg-gray-500/10',
         'hover:bg-gray-500/20',
-        block?.animateY ? 'animate-shake-y' : '',
-        block?.animateX ? 'animate-shake-x' : '',
+        block?.disappear ? 'animate-fade-out' : '',
       ]"
       :src="block?.url"
       @click="match(block)"

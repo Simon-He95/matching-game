@@ -54,7 +54,7 @@ async function dealPicture(baseUrl: string, resolve: any) {
   const image = new Image();
   image.src = base64.value;
   image.onload = () => {
-    ratio.value = (image.width / image.height).toFixed(1);
+    ratio.value = +(image.width / image.height).toFixed(1);
   };
   loading.value = false
   resolve('success')
