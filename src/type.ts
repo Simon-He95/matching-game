@@ -5,4 +5,6 @@ export type Block = {
   animate: boolean | undefined
   disappear: boolean | undefined
   url: string,
+  target?: Block
+  types: string[]
 }

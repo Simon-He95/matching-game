@@ -50,7 +50,7 @@ function picIndex(): number {
 
 async function dealPicture(baseUrl: string, resolve: any) {
   base64.value = baseUrl
-  arrayPic.value = await initData(n.value, base64.value);
+  await initData(n.value, base64.value);
   const image = new Image();
   image.src = base64.value;
   image.onload = () => {
