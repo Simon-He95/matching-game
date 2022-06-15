@@ -1,10 +1,10 @@
-export type Block = {
-  x: number,
-  y: number,
-  pos: number,
+export interface Block {
+  x: number
+  y: number
+  pos: number
   animate: boolean | undefined
   disappear: boolean | undefined
-  url: string,
+  url: string
   target?: Block
   types: string[]
 }

@@ -1,18 +1,18 @@
-import { emptyFlag, arrayPic, loading } from './config';
-import type { Block } from './type';
+import { arrayPic, emptyFlag, loading } from './config'
+import type { Block } from './type'
 
 const pictureMap = new Map<string, any>()
 
 function splitImage(n: number, src: string) {
   const key = `${n}-${src}`
   return new Promise((resolve) => {
-    if (pictureMap.has(key)) {
+    if (pictureMap.has(key))
       return resolve(pictureMap.get(key))
-    }
-    const image = new Image();
-    image.src = src;
 
-    image.onload = async () => {
+    const image = new Image()
+    image.src = src
+
+    image.onload = async() => {
       const result = generateImage(image, n)
       pictureMap.set(key, result)
       resolve(result)
@@ -23,19 +23,19 @@ function splitImage(n: number, src: string) {
 async function generateImage(image: any, n: number) {
   const numbers: any[] = []
   const result: any[] = []
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d")!;
-  const w = image.width / n;
-  const h = image.height / n;
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')!
+  const w = image.width / n
+  const h = image.height / n
   const cacheUrl = new Map<string, string>()
   for (let j = 0; j <= 2 * n + 1; j++) {
-    const col = [];
+    const col = []
     for (let i = 0; i <= n + 1; i++) {
       if (i === 0 || i === n + 1 || j === 0 || j === 2 * n + 1) {
         col.push({
           url: emptyFlag,
           x: i,
-          y: j
+          y: j,
         })
         continue
       }
@@ -46,12 +46,13 @@ async function generateImage(image: any, n: number) {
       else
         pos = JSON.stringify([i - 1, j - 1])
 
-      let url: string = ''
+      let url = ''
       if (cacheUrl.has(pos)) {
         url = cacheUrl.get(pos)!
-      } else {
-        ctx.drawImage(image, (i - 1) * w, (j - 1) * h, w, h, 0, 0, w, h);
-        url = await PicSpace(canvas.toDataURL("image/png")) as string
+      }
+      else {
+        ctx.drawImage(image, (i - 1) * w, (j - 1) * h, w, h, 0, 0, w, h)
+        url = await PicSpace(canvas.toDataURL('image/png')) as string
         cacheUrl.set(pos, url)
       }
       const block = {
@@ -60,20 +61,19 @@ async function generateImage(image: any, n: number) {
         y: j,
         pos: j > n
           ? i - 1 + (j - n - 1) * n
-          : i - 1 + (j - 1) * n
-      };
+          : i - 1 + (j - 1) * n,
+      }
 
       numbers.push(JSON.parse(JSON.stringify(block)))
-      col.push(block);
+      col.push(block)
     }
-    result.push(col);
+    result.push(col)
   }
   return { result, numbers }
 }
 
-
 async function PicSpace(src: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const img = new Image()
     img.src = src
     img.onload = () => {
@@ -82,12 +82,12 @@ async function PicSpace(src: string) {
       canvas.width = img.width
       canvas.height = img.height
       ctx?.drawImage(img, 0, 0)
-      const imgData = ctx?.getImageData(0, 0, canvas.width, canvas.height).data!
-      let lOffset = canvas.width, rOffset = 0, tOffset = canvas.height, bOffset = 0
+      const imgData = ctx?.getImageData(0, 0, canvas.width, canvas.height)?.data
+      let lOffset = canvas.width; let rOffset = 0; let tOffset = canvas.height; let bOffset = 0
       for (let i = 0; i < canvas.width; i++) {
         for (let j = 0; j < canvas.height; j++) {
           const pos = (i + canvas.width * j) * 4
-          if (imgData[pos] === 255 || imgData[pos + 1] === 255 || imgData[pos + 2] || imgData[pos + 3]) {
+          if (imgData?.[pos] === 255 || imgData?.[pos + 1] === 255 || imgData?.[pos + 2] || imgData?.[pos + 3]) {
             bOffset = Math.max(j, bOffset)
             tOffset = Math.min(j, tOffset)
             lOffset = Math.min(i, lOffset)
@@ -107,11 +107,10 @@ async function PicSpace(src: string) {
       resolve(canvas1.toDataURL())
     }
   })
-
 }
 
 function randomPic(numbers: any[]) {
-  const result = numbers.splice(Math.floor(Math.random() * numbers.length), 1)[0];
+  const result = numbers.splice(Math.floor(Math.random() * numbers.length), 1)[0]
   return result
 }
 export async function initData(n: number, src: string) {
@@ -122,34 +121,32 @@ export async function initData(n: number, src: string) {
 
   for (let i = 1; i < array.length - 1; i++) {
     for (let j = 1; j < array[i].length - 1; j++) {
-      const { url, pos, } = randomPic(copyNumbers)
-      if (targetMap[pos] === undefined) {
+      const { url, pos } = randomPic(copyNumbers)
+      if (targetMap[pos] === undefined)
         targetMap[pos] = copyArrayPic[i][j]
-      } else {
+      else
         copyArrayPic[i][j].target = targetMap[pos]
-      }
+
       copyArrayPic[i][j].url = url
       copyArrayPic[i][j].pos = pos
     }
   }
   targetMap = null
   arrayPic.value = copyArrayPic
-  if (noMatching()) {
+  if (noMatching())
     reset()
-  }
 }
 
 export function reset() {
   loading.value = true
   const numbers: any[] = []
   const copyArrayPic: Array<Block[]> = JSON.parse(JSON.stringify(arrayPic.value))
-  let targetMap: Record<number, any> | null = {}
+  const targetMap: Record<number, any> | null = {}
 
-  arrayPic.value.forEach(row => {
-    row.forEach(block => {
-      if (block.url !== emptyFlag) {
+  arrayPic.value.forEach((row) => {
+    row.forEach((block) => {
+      if (block.url !== emptyFlag)
         numbers.push(block)
-      }
     })
   })
   copyArrayPic.forEach((row, i) => {
@@ -157,82 +154,73 @@ export function reset() {
       if (block.url !== emptyFlag) {
         const { url, pos } = randomPic(numbers)
         delete block.target
-        if (targetMap![pos] === undefined) {
+        if (targetMap![pos] === undefined)
           targetMap![pos] = copyArrayPic[i][j]
-        } else {
+        else
           block.target = targetMap![pos]
-        }
+
         block.url = url
         block.pos = pos
       }
     })
   })
   arrayPic.value = copyArrayPic
-  if (noMatching()) {
+  if (noMatching())
     reset()
-  } else {
+  else
     loading.value = false
-  }
 }
-
 
 export function noMatching() {
   // 判断是否无解了
   const array: Block[] = []
   arrayPic.value.forEach((row) => {
     row.forEach((block) => {
-      if (block.target && block.url !== emptyFlag) {
+      if (block.target && block.url !== emptyFlag)
         array.push(block)
-      }
     })
-  });
-  const result = array.every(block => !bfs(block, block.target!))
-  console.log(result)
-  return result
+  })
+  return array.every(block => !bfs(block, block.target!))
 }
-
 
 function preReturn(block: Block | null) {
-  if (!block) {
+  if (!block)
     return false
-  }
-  let count = 0;
-  let pre = null,
-    cur = null;
-  if (block.types!.length < 4) {
-    return true;
-  }
+
+  let count = 0
+  let pre = null
+  let cur = null
+  if (block.types!.length < 4)
+    return true
 
   for (let i = 1; i < block.types!.length; i++) {
-    cur = block.types![i];
-    pre = block.types![i - 1];
-    if (pre !== cur) {
-      count++;
-    }
-    if (count > 2) {
-      return false;
-    }
-  }
-  return true;
-}
+    cur = block.types![i]
+    pre = block.types![i - 1]
+    if (pre !== cur)
+      count++
 
+    if (count > 2)
+      return false
+  }
+  return true
+}
 
 function sameBlock(block: Block, target: Block) {
   return block.pos === target.pos && block.x === target.x && block.y === target.y
 }
 
-export function bfs(block: Block, target: Block, map = new Set) {
-  const queue = [block];
+export function bfs(block: Block, target: Block, map = new Set()) {
+  const queue = [block]
   const maxHeight = arrayPic.value[0].length - 1
   const maxWidth = arrayPic.value.length - 1
   while (queue.length) {
-    const cur: Block = queue.shift()!;
-    if (map.has(cur)) {
+    const cur: Block = queue.shift()!
+    if (map.has(cur))
       continue
-    }
+
     map.add(cur)
-    const y = cur.y;
-    const x = cur.x;
+    const y = cur.y
+    const x = cur.x
     const types: string[] = cur.types || []
     const top = y > 0 ? JSON.parse(JSON.stringify(arrayPic.value[y - 1][x])) : null
     const bottom = y < maxWidth ? JSON.parse(JSON.stringify(arrayPic.value[y + 1][x])) : null
@@ -245,48 +233,39 @@ export function bfs(block: Block, target: Block, map = new Set) {
 
     // 处理边界
     if (preReturn(top) && (block.x !== target.x || block.y > target.y)) {
-      if (sameBlock(top, target)) {
-        console.log("find", top);
-        return true;
-      }
-      if (top.url === emptyFlag) {
-        queue.push(top);
-      }
+      if (sameBlock(top, target))
+        return true
+
+      if (top.url === emptyFlag)
+        queue.push(top)
     }
     if (preReturn(bottom) && (block.x !== target.x || block.y < target.y)) {
-      if (sameBlock(bottom, target)) {
-        console.log("find", bottom);
-        return true;
-      }
-      if (bottom.url === emptyFlag) {
-        queue.push(bottom);
-      }
+      if (sameBlock(bottom, target))
+        return true
+
+      if (bottom.url === emptyFlag)
+        queue.push(bottom)
     }
     if (preReturn(left) && (block.y !== target.y || block.x > target.x)) {
-      if (sameBlock(left, target)) {
-        console.log("find", left);
-        return true;
-      }
-      if (left.url === emptyFlag) {
-        queue.push(left);
-      }
+      if (sameBlock(left, target))
+        return true
 
+      if (left.url === emptyFlag)
+        queue.push(left)
     }
     if (preReturn(right) && (block.y !== target.y || block.x < target.x)) {
-      if (sameBlock(right, target)) {
-        console.log("find", right);
-        return true;
-      }
-      if (right.url === emptyFlag) {
-        queue.push(right);
-      }
+      if (sameBlock(right, target))
+        return true
+
+      if (right.url === emptyFlag)
+        queue.push(right)
     }
   }
-  return false;
+  return false
 }
 
 function pushTypes(block: Block | null, types: string[], type: string) {
   if (!block)
     return
-  block.types = types ? [type, ...types] : [type];
+  block.types = types ? [type, ...types] : [type]
 }
