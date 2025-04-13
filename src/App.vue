@@ -1,10 +1,10 @@
 <template>
   <main font-sans text="center gray-700 dark:gray-200">
     <vivid-typing
-      :interval="200"
+      :interval="500"
       flex="~"
       h-10
-      content="Matching Game"
+      content="配对游戏"
       text-5xl
       :infinity="true"
       justify-center
