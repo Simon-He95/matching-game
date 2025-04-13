@@ -9,3 +9,234 @@ body,
 html.dark {
   background: #121212;
 }
+
+/* 配对游戏主题样式 */
+:root {
+  --primary-color: #4a6ee0;
+  --primary-light: #6b8ff2;
+  --primary-dark: #2d51b9;
+  --secondary-color: #ffb300;
+  --success-color: #4caf50;
+  --error-color: #f44336;
+  --bg-color: #f5f7fb;
+  --card-bg: white;
+  --text-color: #333;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+  --border-radius: 8px;
+  --transition-speed: 0.3s;
+}
+
+.dark {
+  --primary-color: #5d7fe8;
+  --primary-light: #7a9cf5;
+  --primary-dark: #3a5bc4;
+  --secondary-color: #ffc107;
+  --bg-color: #1a1a2e;
+  --card-bg: #282838;
+  --text-color: #e9e9e9;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color var(--transition-speed);
+}
+
+/* 游戏卡片样式 */
+.game-card {
+  position: relative;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-speed) ease;
+  cursor: pointer;
+  transform-origin: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.game-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 空图片不显示边框和背景 */
+.game-card.empty {
+  box-shadow: none;
+  background: transparent;
+  user-select:none;
+  pointer-events:none;
+}
+
+.game-card.empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.game-card.animate {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+  z-index: 10;
+}
+
+.game-card.disappear {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+/* 按钮样式 */
+.game-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 8px 16px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  box-shadow: var(--shadow-sm);
+  margin: 0 4px;
+}
+
+.game-btn:hover {
+  background-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.game-btn:active {
+  background-color: var(--primary-dark);
+  transform: translateY(0);
+}
+
+.game-btn.reset {
+  background-color: var(--error-color);
+}
+
+.game-btn.new-game {
+  background-color: var(--success-color);
+}
+
+.game-btn.easy {
+  background-color: #8bc34a;
+}
+
+.game-btn.normal {
+  background-color: #ff9800;
+}
+
+.game-btn.hard {
+  background-color: #f44336;
+}
+
+/* 标题和分数样式 */
+.game-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+  background-image: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+}
+
+/* 游戏容器 */
+.game-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 1rem;
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+}
+
+.game-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 动画 */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.bounce {
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes tada {
+  0% { transform: scale(1); }
+  10%, 20% { transform: scale(0.9) rotate(-3deg); }
+  30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+  40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.tada {
+  animation: tada 1s ease;
+}
+
+/* 胜利和失败消息 */
+.game-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  z-index: 100;
+}
+
+.game-message h2 {
+  margin-top: 0;
+  font-size: 2rem;
+}
+
+.game-message.win {
+  border: 2px solid var(--success-color);
+}
+
+.game-message.lose {
+  border: 2px solid var(--error-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .game-title {
+    font-size: 2rem;
+  }
+
+  .game-btn {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+}

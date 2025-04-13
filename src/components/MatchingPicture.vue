@@ -86,25 +86,66 @@
     }
   }
   newGame('Easy')
+
+  // 判断一行是否全部都是空图片
+  const isRowEmpty = (row: Block[]) => {
+    return row.every(block => block.url === emptyFlag)
+  }
 </script>
 <template>
-  <div m-y-5 flex="~ gap-2 wrap" justify-center>
-    <button btn @click="reset"> Rest </button>
-    <button btn @click="baseImage"> New Game </button>
-    <button btn @click="newGame('Easy')"> Easy </button>
-    <button btn @click="newGame('Normal')"> Normal </button>
-    <button btn @click="newGame('Hard')"> Hard </button>
-  </div>
-  <div v-for="(row, y) in arrayPic" :key="y" flex="~" items-center justify-center ma :style="{
-    'margin-bottom': !loading && y === 2 * n + 1 ? -height + 'rem' : '',
-    'margin-top': !loading && y === 0 && -height + 'rem',
-  }">
-    <img v-for="block in row" :key="`${block.pos},x:${block.x},y:${block.y}`" m-1 object-fill w-auto flex="~"
-      items-center justify-center :title="block.pos" :class="[
-        'bg-gray-500/10',
-        'hover:bg-gray-500/20',
-        block?.disappear ? 'animate-fade-out' : '',
-      ]" :src="block?.url" :style="sizeStyle(block)" @click="match(block)">
+  <div class="game-container">
+    <div class="game-controls" m-y-5 flex="~ gap-2 wrap" justify-center>
+      <button class="game-btn reset" @click="reset">重置</button>
+      <button class="game-btn new-game" @click="baseImage">新游戏</button>
+      <button class="game-btn easy" @click="newGame('Easy')">简单</button>
+      <button class="game-btn normal" @click="newGame('Normal')">普通</button>
+      <button class="game-btn hard" @click="newGame('Hard')">困难</button>
+    </div>
+    
+    <div class="game-board">
+      <div v-for="(row, y) in arrayPic" :key="y" class="game-row" 
+        :class="{ 'empty-row': isRowEmpty(row) }"
+        >
+        <div v-for="block in row" :key="`${block.pos},x:${block.x},y:${block.y}`" 
+          class="game-card" 
+          :class="[
+            block?.animate ? 'animate' : '',
+            block?.disappear ? 'animate-fade-out disappear' : '',
+            block?.url === emptyFlag ? 'empty' : '',
+          ]"
+          @click="match(block)">
+          <img :src="block?.url" :title="block.pos" :style="sizeStyle(block)">
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-<style scoped></style>
+
+<style scoped>
+.game-card {
+  margin: 0.5rem;
+  width: 5rem;
+  height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-controls {
+  margin-bottom: 1.5rem;
+}
+
+/* 确保图片保持其比例并居中 */
+.game-card img {
+  transition: transform 0.3s ease;
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+}
+
+/* 当行中所有图片都是空的时候禁用鼠标事件 */
+.empty-row {
+  pointer-events: none;
+  height: 0;
+}
+</style>
