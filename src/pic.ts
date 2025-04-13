@@ -118,57 +118,109 @@ export async function initData(n: number, src: string) {
   const copyNumbers = JSON.parse(JSON.stringify(numbers))
   const copyArrayPic = JSON.parse(JSON.stringify(array))
   let targetMap: Record<number, any> | null = {}
+  
+  // Track attempts to avoid infinite loops
+  let attempts = 0
+  let hasSolution = false
+  
+  // Keep trying until we generate a solvable layout or reach max attempts
+  while (!hasSolution && attempts < 10) {
+    attempts++
+    
+    // Reset state for a fresh attempt
+    const freshNumbers = JSON.parse(JSON.stringify(numbers))
+    const freshArrayPic = JSON.parse(JSON.stringify(array))
+    targetMap = {}
+    
+    // Generate a new layout
+    for (let i = 1; i < array.length - 1; i++) {
+      for (let j = 1; j < array[i].length - 1; j++) {
+        const { url, pos } = randomPic(freshNumbers)
+        if (targetMap[pos] === undefined)
+          targetMap[pos] = freshArrayPic[i][j]
+        else
+          freshArrayPic[i][j].target = targetMap[pos]
 
-  for (let i = 1; i < array.length - 1; i++) {
-    for (let j = 1; j < array[i].length - 1; j++) {
-      const { url, pos } = randomPic(copyNumbers)
-      if (targetMap[pos] === undefined)
-        targetMap[pos] = copyArrayPic[i][j]
-      else
-        copyArrayPic[i][j].target = targetMap[pos]
-
-      copyArrayPic[i][j].url = url
-      copyArrayPic[i][j].pos = pos
+        freshArrayPic[i][j].url = url
+        freshArrayPic[i][j].pos = pos
+      }
+    }
+    
+    // Update the array and check if it's solvable
+    arrayPic.value = freshArrayPic
+    hasSolution = !noMatching()
+    
+    // If we have a solution, keep this layout
+    if (hasSolution) {
+      targetMap = null
+      break
     }
   }
-  targetMap = null
-  arrayPic.value = copyArrayPic
-  if (noMatching())
+  
+  // If we couldn't generate a solvable puzzle after max attempts,
+  // use the last generated layout and let the reset function handle it
+  if (!hasSolution) {
+    console.warn('Could not generate a solvable puzzle after multiple attempts')
     reset()
+  }
 }
 
 export function reset() {
   loading.value = true
-  const numbers: any[] = []
-  const copyArrayPic: Array<Block[]> = JSON.parse(JSON.stringify(arrayPic.value))
-  const targetMap: Record<number, any> | null = {}
-
-  arrayPic.value.forEach((row) => {
-    row.forEach((block) => {
-      if (block.url !== emptyFlag)
-        numbers.push(block)
+  
+  // Track attempts to avoid infinite loops
+  let attempts = 0
+  let hasSolution = false
+  
+  while (!hasSolution && attempts < 10) {
+    attempts++
+    
+    const numbers: any[] = []
+    const copyArrayPic: Array<Block[]> = JSON.parse(JSON.stringify(arrayPic.value))
+    const targetMap: Record<number, any> = {}
+    
+    // Collect all non-empty blocks
+    arrayPic.value.forEach((row) => {
+      row.forEach((block) => {
+        if (block.url !== emptyFlag)
+          numbers.push(block)
+      })
     })
-  })
-  copyArrayPic.forEach((row, i) => {
-    row.forEach((block, j) => {
-      if (block.url !== emptyFlag) {
-        const { url, pos } = randomPic(numbers)
-        delete block.target
-        if (targetMap![pos] === undefined)
-          targetMap![pos] = copyArrayPic[i][j]
-        else
-          block.target = targetMap![pos]
+    
+    // Random reassignment
+    copyArrayPic.forEach((row, i) => {
+      row.forEach((block, j) => {
+        if (block.url !== emptyFlag) {
+          const { url, pos } = randomPic(numbers)
+          delete block.target
+          if (targetMap[pos] === undefined)
+            targetMap[pos] = copyArrayPic[i][j]
+          else
+            block.target = targetMap[pos]
 
-        block.url = url
-        block.pos = pos
-      }
+          block.url = url
+          block.pos = pos
+        }
+      })
     })
-  })
-  arrayPic.value = copyArrayPic
-  if (noMatching())
-    reset()
-  else
+    
+    // Update array and check if it's solvable
+    arrayPic.value = copyArrayPic
+    hasSolution = !noMatching()
+    
+    // If we have a solution, keep this layout
+    if (hasSolution) {
+      loading.value = false
+      break
+    }
+  }
+  
+  // If we still don't have a solution after max attempts, try one more time with a different approach
+  if (!hasSolution) {
+    console.warn('Could not generate a solvable puzzle after multiple reset attempts')
+    // We could implement a more deterministic approach here if needed
     loading.value = false
+  }
 }
 
 export function noMatching() {
